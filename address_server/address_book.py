@@ -1,8 +1,7 @@
 # all the imports
 from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
-from flask import Flask, request, session, g, redirect, url_for, abort, \
-     render_template, flash
+from flask import Flask, request, session, g, jsonify, url_for, abort
 
 # configuration
 DATABASE = '/tmp/address_book.db'
@@ -46,40 +45,46 @@ def query_db(query, args=(), one=False):
             for idx, value in enumerate(row)) for row in cur.fetchall()]
     return (rv[0] if rv else None) if one else rv
 
+
 # apparently there's a way to break this out, but I'm just going to keep this simple for now
 @app.route('/')
 def addresses():
-    cur = g.db.execute('select address, nickname from addresses order by id desc')
-    entries = [dict(address=row[0], nickname=row[1]) for row in cur.fetchall()]
-    return "found {0} addresses".format(len(entries))
+    entries = query_db('select * from addresses order by id desc', one=False)
+    return jsonify(items=entries)
 
 @app.route('/address/<int:address_id>')
 def address(address_id):
     address = query_db('select * from addresses where id = ?', [address_id], one=True)
     if address is None:
-        return 'No such address'
+        return jsonify()
     else:
-        return 'Address {0} has the nickname {1}'.format(address['id'], address['nickname'])
+        return create_json(address)
 
 @app.route('/address', methods=['POST'])
 def new_address():
-	g.db.execute('insert into addresses (address, nickname, latitude, longitude) values (?, ?, 1, 1)',
-	                 [request.form['address'], request.form['nickname']])
-	g.db.commit()
-	return "and done {0}".format(request.form['address'])
+    query_db('insert into addresses (address, nickname, latitude, longitude) values (?, ?, 1, 1)',
+                     [request.form['address'], request.form['nickname']], one=True)
+    g.db.commit()
+    address = query_db('select * from addresses order by id desc', one=True)
+    return create_json(address)
 
 @app.route('/address/<int:address_id>', methods=['PUT'])
 def edit_nickname(address_id):
-	g.db.execute('update addresses set nickname = ? where id = ?',
-	                 [request.form['nickname'], address_id])
+	query_db('update addresses set nickname = ? where id = ?', [request.form['nickname'], address_id])
 	g.db.commit()
-	return "Updated nickname on {0} to {1}".format(address_id, request.form['nickname'])
+	return address(address_id)
 	
 @app.route('/address/<int:address_id>', methods=['DELETE'])
 def delete_address(address_id):
-	g.db.execute('delete from addresses where id = ?', [address_id])
+	query_db('delete from addresses where id = ?', [address_id])
 	g.db.commit()
-	return "Address {0} is gone".format(address_id)
+	return jsonify(id=address_id)
+
+
+def create_json(address_dict):
+	# i guess you can just do it this way. who'd have thunk
+    return jsonify(address_dict)
+
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0')
