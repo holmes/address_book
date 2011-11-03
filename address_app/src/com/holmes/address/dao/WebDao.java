@@ -7,13 +7,12 @@ import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -31,8 +30,8 @@ import com.holmes.address.model.Address;
 @Singleton
 public class WebDao {
 	private static final String BASE_DOMAIN = "http://10.73.233.65:5000";
-	private static final String BASE_ADDRESS_PATH = BASE_DOMAIN + "/address/";
-	private static final String SPECIFIC_ADDRESS_PATH = BASE_ADDRESS_PATH + "%d";
+	private static final String BASE_ADDRESS_PATH = BASE_DOMAIN + "/address";
+	private static final String SPECIFIC_ADDRESS_PATH = BASE_ADDRESS_PATH + "/%d";
 	private static final Type ADDRESSES_TYPE = new TypeToken<List<Address>>() {}.getType();
 
 	@Inject
@@ -67,12 +66,9 @@ public class WebDao {
 			List<NameValuePair> parameters = new ArrayList<NameValuePair>();
 			parameters.add( new BasicNameValuePair( "address", address ) );
 			parameters.add( new BasicNameValuePair( "nickname", nickname ) );
-			String body = URLEncodedUtils.format( parameters, "UTF-8" );
 
 			HttpPost request = new HttpPost( BASE_ADDRESS_PATH );
-			request.setEntity( new StringEntity( body ) );
-			
-			return executeForAddress( request );
+			return executeForAddress( request, parameters );
 		} catch ( Exception e ) {
 			Ln.e( e, "Unable to retrieve all addresses" );
 			return new Address( "Unable to retrieve", "Unknown" );
@@ -83,12 +79,9 @@ public class WebDao {
 		try {
 			List<NameValuePair> parameters = new ArrayList<NameValuePair>();
 			parameters.add( new BasicNameValuePair( "nickname", nickname ) );
-			String body = URLEncodedUtils.format( parameters, "UTF-8" );
 
 			HttpPut request = new HttpPut( String.format( SPECIFIC_ADDRESS_PATH, id ) );
-			request.setEntity( new StringEntity( body ) );
-
-			return executeForAddress( request );
+			return executeForAddress( request, parameters );
 		} catch ( Exception e ) {
 			Ln.e( e, "Unable to retrieve all addresses" );
 			return new Address( "Unable to retrieve", "Unknown" );
@@ -106,7 +99,9 @@ public class WebDao {
 		}
 	}
 	
-	private Address executeForAddress( HttpUriRequest request ) throws IOException {
+	private Address executeForAddress( HttpEntityEnclosingRequestBase request, List<NameValuePair> parameters ) throws IOException {
+		request.setEntity( new UrlEncodedFormEntity( parameters ) );
+
 		HttpResponse response = httpClient.execute( request );
 		String content = EntityUtils.toString( response.getEntity() );
 		
