@@ -7,6 +7,9 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
@@ -16,8 +19,10 @@ import android.widget.TextView;
 import com.google.inject.Inject;
 import com.holmes.address.dao.WebDao;
 import com.holmes.address.model.Address;
+import com.holmes.address.tasks.DeleteTask;
+import com.holmes.address.tasks.DeleteTask.DeleteFinishListener;
 
-public class AddressActivity extends RoboActivity implements OnClickListener {
+public class AddressActivity extends RoboActivity implements OnClickListener, DeleteFinishListener {
 	public static final String INTENT_EXTRA_ADDRESS = "address";
 
 	@Inject
@@ -49,9 +54,36 @@ public class AddressActivity extends RoboActivity implements OnClickListener {
 		addressToUse = getIntent().getParcelableExtra( INTENT_EXTRA_ADDRESS );
 		updateAddress();
 	}
-
+	
+	@Override
+	public boolean onCreateOptionsMenu( Menu menu ) {
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.address_view_menu, menu);
+	    return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item ) {
+		if( item.getItemId() == R.id.edit_nickname ) {
+			editNickname();
+		} else {
+			new DeleteTask.DeleteDialogBuilder( this, addressToUse, webDao, this ).show();
+		}
+		
+		return true;
+	}
+	
 	@Override
 	public void onClick( View v ) {
+		editNickname();
+	}
+	
+	@Override
+	public void onDeleteFinished( Address deletedAddress ) {
+		finish();
+	}
+
+	private void editNickname() {
 		final EditText input = new EditText( this );
 		input.setText( nickname.getText() );
 
@@ -94,4 +126,5 @@ public class AddressActivity extends RoboActivity implements OnClickListener {
 			dialog.dismiss();
 		}
 	}
+
 }

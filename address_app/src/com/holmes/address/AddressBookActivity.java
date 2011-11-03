@@ -4,7 +4,6 @@ import java.util.List;
 
 import roboguice.activity.RoboListActivity;
 import roboguice.inject.InjectView;
-import roboguice.util.Ln;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -52,13 +51,12 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 		super.onStart();
 		refreshAddresses();
 	}
-	
+
 	@Override
 	protected void onActivityResult( int requestCode, int resultCode, Intent data ) {
-		// check request and resultCode and possibly alter the adapter instead of being lazy and forcing the refresh
-		refreshAddresses();
+		// check request and resultCode and possibly alter the adapter instead of being lazy and forcing the refresh via onResume
 	}
-	
+
 	@Override
 	public void onClick( View v ) {
 		if ( v == createButton ) {
@@ -83,7 +81,7 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 
 	@Override
 	public boolean onItemLongClick( AdapterView<?> parent, View view, int position, long id ) {
-		Ln.i( "long click on %d", position );
+		// normally you'd show a menu here, in this case maybe with view/edit/delete
 		Address address = (Address) parent.getItemAtPosition( position );
 		Toast.makeText( AddressBookActivity.this, address.getNickname(), Toast.LENGTH_SHORT ).show();
 
@@ -105,7 +103,7 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 	private void refreshAddresses() {
 		new RetrieverTask().execute( (Void[]) null );
 	}
-	
+
 	private void initializeListView( List<Address> result ) {
 		adapter = new AddressBookAdapter( result );
 		setListAdapter( adapter );
@@ -139,17 +137,7 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 			view.findViewById( R.id.delete ).setOnClickListener( new OnClickListener() {
 				@Override
 				public void onClick( View v ) {
-					new AlertDialog.Builder( AddressBookActivity.this )
-							.setIcon( R.drawable.x )
-							.setTitle( "Delete Address" )
-							.setMessage( String.format( "Are you sure you want to delete %s", address.getNickname() ) )
-							.setNegativeButton( android.R.string.cancel, null )
-							.setPositiveButton( android.R.string.yes, new DialogInterface.OnClickListener() {
-								@Override
-								public void onClick( DialogInterface dialog, int which ) {
-									new DeleteTask( AddressBookActivity.this, webDao, AddressBookActivity.this ).execute( address );
-								}
-							} ).show();
+					new DeleteTask.DeleteDialogBuilder( getContext(), address, webDao, AddressBookActivity.this ).show();
 				}
 			} );
 
