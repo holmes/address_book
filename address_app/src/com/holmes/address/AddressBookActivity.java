@@ -3,10 +3,13 @@ package com.holmes.address;
 import java.util.List;
 
 import roboguice.activity.RoboListActivity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -16,18 +19,20 @@ import android.widget.TextView;
 import com.google.inject.Inject;
 import com.holmes.address.dao.WebDao;
 import com.holmes.address.model.Address;
+import com.holmes.address.tasks.DeleteTask;
 
 public class AddressBookActivity extends RoboListActivity implements OnItemClickListener {
 
 	@Inject
 	private WebDao webDao;
 	
-	private AddressBookAdapter adapter;
+	AddressBookAdapter adapter;
 
 	@Override
 	protected void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
 		
+		setContentView( R.layout.address_list );
 		getListView().setOnItemClickListener( this );
 	}
 	
@@ -42,16 +47,44 @@ public class AddressBookActivity extends RoboListActivity implements OnItemClick
 		// launch another activity
 	}
 	
-	private class AddressBookAdapter extends ArrayAdapter<Address> {
+	class AddressBookAdapter extends ArrayAdapter<Address> {
 		public AddressBookAdapter( List<Address> addresses ) {
 			super( AddressBookActivity.this, android.R.layout.simple_list_item_1, addresses );
 		}
 		
 		@Override
 		public View getView( int position, View convertView, ViewGroup parent ) {
-			TextView title = (TextView) super.getView( position, convertView, parent );
-			title.setText( getItem( position ).getNickname() );
-			return title;
+			View view = convertView;
+			if( view == null ) {
+				view = getLayoutInflater().inflate( R.layout.address_list_item, null );
+			}
+			
+			final Address address = getItem( position );
+			
+			TextView nicknameField = (TextView) view.findViewById( R.id.nickname );
+			nicknameField.setText( address.getNickname() );
+
+			TextView addressField = (TextView) view.findViewById( R.id.address );
+			addressField.setText( address.getAddress() );
+			
+			view.findViewById( R.id.delete ).setOnClickListener( new OnClickListener() {
+				@Override
+				public void onClick( View v ) {
+					new AlertDialog.Builder(AddressBookActivity.this)
+			        .setIcon(android.R.drawable.ic_dialog_alert)
+			        .setTitle("Delete Address")
+			        .setMessage(String.format("Are you sure you want to delete %s", address.getNickname() ))
+			        .setNegativeButton(android.R.string.cancel, null)
+			        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+			            @Override
+			            public void onClick(DialogInterface dialog, int which) {
+			            	new DeleteTask( AddressBookActivity.this, webDao ).execute( address );
+			            }
+			        }).show();
+				}
+			});
+			
+			return view;
 		}
 	}
 	

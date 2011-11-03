@@ -32,7 +32,7 @@ import com.holmes.address.model.Address;
 public class WebDao {
 	private static final String BASE_DOMAIN = "http://10.73.233.65:5000";
 	private static final String BASE_ADDRESS_PATH = BASE_DOMAIN + "/address/";
-	private static final String SPECIFIC_ADDRESS_PATH = BASE_DOMAIN + BASE_ADDRESS_PATH + "%d";
+	private static final String SPECIFIC_ADDRESS_PATH = BASE_ADDRESS_PATH + "%d";
 	private static final Type ADDRESSES_TYPE = new TypeToken<List<Address>>() {}.getType();
 
 	@Inject
