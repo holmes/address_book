@@ -56,6 +56,7 @@ public class WebDao {
 		} catch ( Exception e ) {
 			Ln.e( e, "Unable to retrieve all addresses" );
 			addresses = new ArrayList<Address>();
+			addresses.add( new Address( "unknown info", "unknown" ) );
 		}
 
 		return addresses;

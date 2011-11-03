@@ -25,11 +25,12 @@
 		android:layout_toLeftOf="@+id/delete"
 		android:text="address"
 		android:textAppearance="@android:style/TextAppearance.Small" />
-	<ImageButton
+	<ImageView
 		android:id="@+id/delete"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_alignParentRight="true"
 		android:layout_centerVertical="true"
+		android:focusable="false"
 		android:background="@drawable/x" />
 </RelativeLayout>

@@ -4,9 +4,11 @@ import java.util.List;
 
 import roboguice.activity.RoboListActivity;
 import roboguice.inject.InjectView;
+import roboguice.util.Ln;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -14,9 +16,11 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.inject.Inject;
 import com.holmes.address.dao.WebDao;
@@ -24,7 +28,8 @@ import com.holmes.address.model.Address;
 import com.holmes.address.tasks.DeleteTask;
 import com.holmes.address.tasks.DeleteTask.DeleteFinishListener;
 
-public class AddressBookActivity extends RoboListActivity implements OnItemClickListener, DeleteFinishListener, OnClickListener {
+public class AddressBookActivity extends RoboListActivity implements DeleteFinishListener, OnClickListener, OnItemClickListener, OnItemLongClickListener {
+	private static final int REQUEST_CODE_VIEW = 0;
 
 	@Inject
 	private WebDao webDao;
@@ -39,20 +44,15 @@ public class AddressBookActivity extends RoboListActivity implements OnItemClick
 		super.onCreate( savedInstanceState );
 
 		setContentView( R.layout.address_list );
-		getListView().setOnItemClickListener( this );
 		createButton.setOnClickListener( this );
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		refreshAddressBook();
+		refreshAddresses();
 	}
 
-	@Override
-	public void onItemClick( AdapterView<?> parent, View view, int position, long id ) {
-		// launch another activity
-	}
 
 	@Override
 	public void onClick( View v ) {
@@ -77,19 +77,49 @@ public class AddressBookActivity extends RoboListActivity implements OnItemClick
 	}
 
 	@Override
-	public void onDeleteFinished() {
-		refreshAddressBook();
+	public boolean onItemLongClick( AdapterView<?> parent, View view, int position, long id ) {
+		Ln.i( "long click on %d", position );
+		Address address = (Address) parent.getItemAtPosition( position );
+		Toast.makeText( AddressBookActivity.this, address.getNickname(), Toast.LENGTH_SHORT ).show();
+
+		return true;
 	}
 
-	private void refreshAddressBook() {
+	@Override
+	public void onItemClick( AdapterView<?> parent, View view, int position, long id ) {
+		Intent intent = new Intent( this, AddressActivity.class );
+		intent.putExtra( AddressActivity.INTENT_EXTRA_ADDRESS, adapter.getItem( position ) );
+		startActivityForResult( intent, REQUEST_CODE_VIEW );
+	}
+	
+	@Override
+	protected void onActivityResult( int requestCode, int resultCode, Intent data ) {
+		// check request and resultCode and possibly alter the adapter instead of being lazy and forcing the refresh
+		refreshAddresses();
+	}
+
+	@Override
+	public void onDeleteFinished( Address toRemove ) {
+		adapter.remove( toRemove );
+	}
+
+	private void refreshAddresses() {
 		new RetrieverTask().execute( (Void[]) null );
+	}
+	
+	private void initializeListView( List<Address> result ) {
+		adapter = new AddressBookAdapter( result );
+		setListAdapter( adapter );
+
+		getListView().setOnItemClickListener( this );
+		getListView().setOnItemLongClickListener( this );
 	}
 
 
 
 	private class AddressBookAdapter extends ArrayAdapter<Address> {
 		public AddressBookAdapter( List<Address> addresses ) {
-			super( AddressBookActivity.this, android.R.layout.simple_list_item_1, addresses );
+			super( AddressBookActivity.this, 0, addresses );
 		}
 
 		@Override
@@ -131,7 +161,7 @@ public class AddressBookActivity extends RoboListActivity implements OnItemClick
 
 
 	/**
-	 * order of params is address/nickname
+	 * order of params is address,nickname
 	 * 
 	 * @author holmesj
 	 */
@@ -175,9 +205,7 @@ public class AddressBookActivity extends RoboListActivity implements OnItemClick
 		@Override
 		protected void onPostExecute( List<Address> result ) {
 			dialog.dismiss();
-
-			adapter = new AddressBookAdapter( result );
-			AddressBookActivity.this.setListAdapter( adapter );
+			AddressBookActivity.this.initializeListView( result );
 		}
 	}
 }

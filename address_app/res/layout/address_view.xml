@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical"
 	android:layout_width="match_parent"
@@ -9,22 +9,40 @@
 		android:id="@+id/address"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+		android:layout_marginBottom="10dp"
 		android:inputType="textPersonName"
 		android:textAppearance="@android:style/TextAppearance.Large"
-		android:hint="Address"
-	/>
+		android:hint="Address" />
 	<TextView
 		android:id="@+id/nickname"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+		android:layout_below="@id/address"
+		android:layout_alignParentLeft="true"
+		android:layout_toLeftOf="@+id/edit_nickname"
 		android:textAppearance="@android:style/TextAppearance.Large"
-		android:hint="Nickname"
-	/>
-	<Button android:id="@+id/edit"
+		android:hint="Nickname" />
+	<ImageButton
+		android:id="@+id/edit_nickname"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_gravity="center"
-		android:text="Edit Nickname"
-	/>
-	
-</LinearLayout>
+		android:layout_alignBottom="@id/nickname"
+		android:layout_alignParentRight="true"
+		android:background="@android:drawable/ic_menu_edit"
+		android:text="Edit"
+		android:textAppearance="@android:style/TextAppearance.Large" />
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:layout_below="@id/nickname"
+		android:background="#abccba"
+		android:layout_marginTop="10dp"
+	>
+		<TextView
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:gravity="center"
+			android:text="If I find some time, I'll put a map in here"
+			android:textAppearance="@android:style/TextAppearance.Large" />
+	</LinearLayout>
+</RelativeLayout>

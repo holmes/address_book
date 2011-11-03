@@ -28,11 +28,11 @@ public class DeleteTask extends AsyncTask<Address, Void, Address> {
 	protected void onPostExecute( Address deletedAddress ) {
 		Toast.makeText( context, String.format( "Deleted %s", deletedAddress.getNickname() ), Toast.LENGTH_SHORT ).show();
 		if( deleteFinishListener != null ) {
-			deleteFinishListener.onDeleteFinished();
+			deleteFinishListener.onDeleteFinished( deletedAddress );
 		}
 	}
 	
 	public interface DeleteFinishListener {
-		public void onDeleteFinished();
+		public void onDeleteFinished( Address address );
 	}
 }
