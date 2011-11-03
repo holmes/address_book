@@ -8,19 +8,25 @@ import com.google.inject.Singleton;
 @Singleton
 public class WebDao {
 
-	public List<AddressBook> getAddresses() {
-		return new ArrayList<AddressBook>();
+	public List<Address> getAddresses() {
+		ArrayList<Address> addresses = new ArrayList<Address>();
+		addresses.add( new Address( "123 A St", "Home" ) );
+		addresses.add( new Address( "456 B St", "Work" ) );
+		addresses.add( new Address( "789 C St", "Play" ) );
+		addresses.add( new Address( "123 D St", "Bar" ) );
+		
+		return addresses;
 	}
 
-	public AddressBook getAddress( long id ) {
+	public Address getAddress( long id ) {
 		return null;
 	}
 
-	public AddressBook create( AddressBook addressBook ) {
+	public Address create( Address addressBook ) {
 		return addressBook;
 	}
 	
-	public AddressBook updateNickname( long id, String nickName ) {
+	public Address updateNickname( long id, String nickName ) {
 		return null;
 	}
 
