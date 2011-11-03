@@ -4,6 +4,7 @@ import java.util.List;
 
 import roboguice.activity.RoboListActivity;
 import roboguice.inject.InjectView;
+import roboguice.util.RoboAsyncTask;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -73,7 +74,7 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 							TextView nicknameField = (TextView) createView.findViewById( R.id.nickname );
 
 							// no validation for now, just do it!
-							new CreateTask().execute( String.valueOf( addressField.getText() ), String.valueOf( nicknameField.getText() ) );
+							new CreateTask(String.valueOf( addressField.getText() ), String.valueOf( nicknameField.getText() ) ).execute();
 						}
 					} ).show();
 		}
@@ -152,25 +153,42 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 	 * 
 	 * @author holmesj
 	 */
-	private class CreateTask extends AsyncTask<String, Void, Address> {
+	private class CreateTask extends RoboAsyncTask<Address> {
 		private ProgressDialog dialog;
+		
+		private final String name;
+		private final String address;
 
+		public CreateTask(String address, String name) {
+			this.address = address;
+			this.name = name;
+		}
+		
 		@Override
 		protected void onPreExecute() {
-			super.onPreExecute();
 			dialog = ProgressDialog.show( AddressBookActivity.this, "Saving new address", "Just a minute..." );
 		}
 
 		@Override
-		protected Address doInBackground( String... params ) {
-			return webDao.create( params[0], params[1] );
+		public Address call() throws Exception {
+			return webDao.create( address, name );
 		}
 
 		@Override
-		protected void onPostExecute( Address result ) {
-			dialog.dismiss();
-			adapter.insert( result, 0 );
+		protected void onSuccess( Address newAddress ) throws Exception {
+			adapter.insert( newAddress, 0 );
 		}
+		
+		@Override
+		protected void onException( Exception e ) throws RuntimeException {
+			Toast.makeText( AddressBookActivity.this, e.getMessage(), Toast.LENGTH_LONG ).show();
+		}
+
+		@Override
+		protected void onFinally() throws RuntimeException {
+			dialog.dismiss();
+		}
+		
 	}
 
 

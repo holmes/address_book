@@ -62,6 +62,12 @@ public class WebDao {
 		return addresses;
 	}
 
+	/**
+	 * @param address
+	 * @param nickname
+	 * @return
+	 * @throws UnknownAddressException if we have a problem
+	 */
 	public Address create( String address, String nickname ) {
 		try {
 			List<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -71,8 +77,8 @@ public class WebDao {
 			HttpPost request = new HttpPost( BASE_ADDRESS_PATH );
 			return executeForAddress( request, parameters );
 		} catch ( Exception e ) {
-			Ln.e( e, "Unable to retrieve all addresses" );
-			return new Address( "Unable to retrieve", "Unknown" );
+			Ln.e( e, "Unable to create an address: %s", address );
+			throw new UnknownAddressException( address );
 		}
 	}
 
@@ -84,7 +90,7 @@ public class WebDao {
 			HttpPut request = new HttpPut( String.format( SPECIFIC_ADDRESS_PATH, id ) );
 			return executeForAddress( request, parameters );
 		} catch ( Exception e ) {
-			Ln.e( e, "Unable to retrieve all addresses" );
+			Ln.e( e, "Unable to udpate an address: %d", id );
 			return new Address( "Unable to retrieve", "Unknown" );
 		}
 	}
@@ -95,7 +101,7 @@ public class WebDao {
 			HttpResponse response = httpClient.execute( request );
 			return response.getStatusLine().getStatusCode() == 200;
 		} catch ( Exception e ) {
-			Ln.e( e, "Unable to delete your address" );
+			Ln.e( e, "Unable to delete address: %d", id );
 			return false;
 		}
 	}
