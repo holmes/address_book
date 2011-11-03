@@ -20,8 +20,9 @@ import com.google.inject.Inject;
 import com.holmes.address.dao.WebDao;
 import com.holmes.address.model.Address;
 import com.holmes.address.tasks.DeleteTask;
+import com.holmes.address.tasks.DeleteTask.DeleteFinishListener;
 
-public class AddressBookActivity extends RoboListActivity implements OnItemClickListener {
+public class AddressBookActivity extends RoboListActivity implements OnItemClickListener, DeleteFinishListener {
 
 	@Inject
 	private WebDao webDao;
@@ -39,15 +40,23 @@ public class AddressBookActivity extends RoboListActivity implements OnItemClick
 	@Override
 	protected void onResume() {
 		super.onResume();
-		new RetrieverTask().execute( (Void[]) null );
+		refreshAddressBook();
 	}
-	
 	@Override
 	public void onItemClick( AdapterView<?> parent, View view, int position, long id ) {
 		// launch another activity
 	}
+
+	@Override
+	public void onDeleteFinished() {
+		refreshAddressBook();
+	}
 	
-	class AddressBookAdapter extends ArrayAdapter<Address> {
+	private void refreshAddressBook() {
+		new RetrieverTask().execute( (Void[]) null );
+	}
+	
+	private class AddressBookAdapter extends ArrayAdapter<Address> {
 		public AddressBookAdapter( List<Address> addresses ) {
 			super( AddressBookActivity.this, android.R.layout.simple_list_item_1, addresses );
 		}
@@ -78,7 +87,7 @@ public class AddressBookActivity extends RoboListActivity implements OnItemClick
 			        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 			            @Override
 			            public void onClick(DialogInterface dialog, int which) {
-			            	new DeleteTask( AddressBookActivity.this, webDao ).execute( address );
+			            	new DeleteTask( AddressBookActivity.this, webDao, AddressBookActivity.this ).execute( address );
 			            }
 			        }).show();
 				}
@@ -110,4 +119,5 @@ public class AddressBookActivity extends RoboListActivity implements OnItemClick
 			AddressBookActivity.this.setListAdapter( adapter );
 		}
 	}
+
 }

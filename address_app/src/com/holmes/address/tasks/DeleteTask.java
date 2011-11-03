@@ -10,10 +10,12 @@ import com.holmes.address.model.Address;
 public class DeleteTask extends AsyncTask<Address, Void, Address> {
 	private final WebDao webDao;
 	private final Context context;
+	private final DeleteFinishListener deleteFinishListener;
 
-	public DeleteTask( Context context, WebDao webDao ) {
+	public DeleteTask( Context context, WebDao webDao, DeleteFinishListener deleteFinishListener ) {
 		this.context = context;
 		this.webDao = webDao;
+		this.deleteFinishListener = deleteFinishListener;
 	}
 
 	@Override
@@ -25,5 +27,12 @@ public class DeleteTask extends AsyncTask<Address, Void, Address> {
 	@Override
 	protected void onPostExecute( Address deletedAddress ) {
 		Toast.makeText( context, String.format( "Deleted %s", deletedAddress.getNickname() ), Toast.LENGTH_SHORT ).show();
+		if( deleteFinishListener != null ) {
+			deleteFinishListener.onDeleteFinished();
+		}
+	}
+	
+	public interface DeleteFinishListener {
+		public void onDeleteFinished();
 	}
 }
