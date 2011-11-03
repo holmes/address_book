@@ -1,4 +1,4 @@
-package com.holmes.address;
+package com.holmes.address.dao;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.holmes.address.model.Address;
 
 @Singleton
 public class WebDao {

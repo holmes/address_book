@@ -1,4 +1,4 @@
-package com.holmes.address;
+package com.holmes.address.model;
 
 public class Address {
 

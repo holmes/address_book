@@ -14,6 +14,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.google.inject.Inject;
+import com.holmes.address.dao.WebDao;
+import com.holmes.address.model.Address;
 
 public class AddressBookActivity extends RoboListActivity implements OnItemClickListener {
 
