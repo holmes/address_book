@@ -3,7 +3,9 @@ package com.holmes.address;
 import roboguice.activity.RoboActivity;
 import roboguice.inject.InjectView;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,6 +32,8 @@ public class AddressActivity extends RoboActivity implements OnClickListener {
 	@InjectView( R.id.edit_nickname )
 	private ImageButton editNickname;
 
+	private Address addressToUse;
+
 	@Override
 	protected void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
@@ -42,9 +46,8 @@ public class AddressActivity extends RoboActivity implements OnClickListener {
 	protected void onResume() {
 		super.onResume();
 
-		Address addressToUse = getIntent().getParcelableExtra( INTENT_EXTRA_ADDRESS );
-		address.setText( addressToUse.getAddress() );
-		nickname.setText( addressToUse.getNickname() );
+		addressToUse = getIntent().getParcelableExtra( INTENT_EXTRA_ADDRESS );
+		updateAddress();
 	}
 
 	@Override
@@ -59,9 +62,36 @@ public class AddressActivity extends RoboActivity implements OnClickListener {
 					@Override
 					public void onClick( DialogInterface dialog, int whichButton ) {
 						nickname.setText( input.getText().toString() );
+						new UpdateNicknameTask().execute( (Void[]) null );
 					}
 				} )
 				.setNegativeButton( android.R.string.cancel, null )
 				.show();
+	}
+
+	private void updateAddress() {
+		address.setText( addressToUse.getAddress() );
+		nickname.setText( addressToUse.getNickname() );
+	}
+
+
+
+	private class UpdateNicknameTask extends AsyncTask<Void, Void, Address> {
+		private ProgressDialog dialog;
+
+		@Override
+		protected void onPreExecute() {
+			dialog = ProgressDialog.show( AddressActivity.this, "Updating Nickname", "Just a sec..." );
+		}
+
+		@Override
+		protected Address doInBackground( Void... params ) {
+			return webDao.updateNickname( addressToUse.getId(), String.valueOf( nickname.getText() ) );
+		}
+
+		@Override
+		protected void onPostExecute( Address result ) {
+			dialog.dismiss();
+		}
 	}
 }

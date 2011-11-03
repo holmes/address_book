@@ -48,12 +48,17 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 	}
 
 	@Override
-	protected void onResume() {
-		super.onResume();
+	protected void onStart() {
+		super.onStart();
 		refreshAddresses();
 	}
-
-
+	
+	@Override
+	protected void onActivityResult( int requestCode, int resultCode, Intent data ) {
+		// check request and resultCode and possibly alter the adapter instead of being lazy and forcing the refresh
+		refreshAddresses();
+	}
+	
 	@Override
 	public void onClick( View v ) {
 		if ( v == createButton ) {
@@ -90,12 +95,6 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 		Intent intent = new Intent( this, AddressActivity.class );
 		intent.putExtra( AddressActivity.INTENT_EXTRA_ADDRESS, adapter.getItem( position ) );
 		startActivityForResult( intent, REQUEST_CODE_VIEW );
-	}
-	
-	@Override
-	protected void onActivityResult( int requestCode, int resultCode, Intent data ) {
-		// check request and resultCode and possibly alter the adapter instead of being lazy and forcing the refresh
-		refreshAddresses();
 	}
 
 	@Override
