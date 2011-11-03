@@ -1,4 +1,5 @@
 # all the imports
+import urllib, json
 from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
 from flask import Flask, request, session, g, jsonify, url_for, abort
@@ -62,11 +63,21 @@ def address(address_id):
 
 @app.route('/address', methods=['POST'])
 def new_address():
-    #query_path = "http://maps.googleapis.com/maps/api/geocode/json?address={0}&sensor=false".format(request.form['address'])
-    # find a way to hit that endpoint
-	
-    query_db('insert into addresses (address, nickname, latitude, longitude) values (?, ?, 1, 1)',
-                     [request.form['address'], request.form['nickname']], one=True)
+    encoded_address_info = urllib.quote_plus(request.form['address'])
+    query_path = "http://maps.googleapis.com/maps/api/geocode/json?address={0}&sensor=false".format(encoded_address_info)
+
+    json_response = json.loads(urllib.urlopen(query_path).read())
+    if json_response['status'] == 'ZERO_RESULTS' :
+        abort(400)
+
+    first_result = json_response['results'][0] 
+    location_node = first_result['geometry']['location']
+    lat = location_node['lat']
+    lng = location_node['lng']
+    address = first_result['formatted_address'] 
+    
+    query_db('insert into addresses (address, nickname, latitude, longitude) values (?, ?, ?, ?)',
+                     [address, request.form['nickname'], lat, lng], one=True)
     g.db.commit()
     address = query_db('select * from addresses order by id desc', one=True)
     return create_json(address)
