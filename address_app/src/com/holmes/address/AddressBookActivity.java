@@ -11,6 +11,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -19,10 +22,12 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.inject.Inject;
+import com.holmes.address.dao.BaseUrlProvider;
 import com.holmes.address.dao.WebDao;
 import com.holmes.address.model.Address;
 import com.holmes.address.tasks.DeleteTask;
@@ -31,6 +36,9 @@ import com.holmes.address.tasks.DeleteTask.DeleteFinishListener;
 public class AddressBookActivity extends RoboListActivity implements DeleteFinishListener, OnClickListener, OnItemClickListener, OnItemLongClickListener {
 	private static final int REQUEST_CODE_VIEW = 0;
 
+	@Inject
+	private BaseUrlProvider urlProvider;
+	
 	@Inject
 	private WebDao webDao;
 
@@ -53,6 +61,39 @@ public class AddressBookActivity extends RoboListActivity implements DeleteFinis
 		refreshAddresses();
 	}
 
+	
+	@Override
+	public boolean onCreateOptionsMenu( Menu menu ) {
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.address_main_menu, menu);
+	    return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item ) {
+		if( item.getItemId() == R.id.refresh ) {
+			refreshAddresses();
+		} else {
+			final EditText input = new EditText( this );
+			input.setText( urlProvider.getBaseUrl() );
+
+			new AlertDialog.Builder( this )
+					.setTitle( "Update Nickname" )
+					.setView( input )
+					.setPositiveButton( "Ok", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick( DialogInterface dialog, int whichButton ) {
+							urlProvider.setBaseUrl( input.getText().toString() );
+							Toast.makeText( AddressBookActivity.this, "Updated the domain to: " + urlProvider.getBaseUrl(), Toast.LENGTH_LONG ).show();
+						}
+					} )
+					.setNegativeButton( android.R.string.cancel, null )
+					.show();
+		}
+		
+		return true;
+	}
+	
 	@Override
 	protected void onActivityResult( int requestCode, int resultCode, Intent data ) {
 		// check request and resultCode and possibly alter the adapter instead of being lazy and forcing the refresh via onResume

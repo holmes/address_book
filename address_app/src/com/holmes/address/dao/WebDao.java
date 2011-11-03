@@ -29,11 +29,13 @@ import com.holmes.address.model.Address;
 
 @Singleton
 public class WebDao {
-	private static final String BASE_DOMAIN = "http://10.73.233.65:5000";
-	private static final String BASE_ADDRESS_PATH = BASE_DOMAIN + "/address";
+	private static final String BASE_ADDRESS_PATH = "/address";
 	private static final String SPECIFIC_ADDRESS_PATH = BASE_ADDRESS_PATH + "/%d";
 	private static final Type ADDRESSES_TYPE = new TypeToken<List<Address>>() {}.getType();
 
+	@Inject
+	private BaseUrlProvider urlProvider;
+	
 	@Inject
 	private AndroidHttpClient httpClient;
 
@@ -44,7 +46,7 @@ public class WebDao {
 		ArrayList<Address> addresses;
 
 		try {
-			HttpGet request = new HttpGet( BASE_DOMAIN );
+			HttpGet request = new HttpGet( getBaseUrl() );
 			HttpResponse response = httpClient.execute( request );
 			String content = EntityUtils.toString( response.getEntity() );
 
@@ -56,7 +58,6 @@ public class WebDao {
 		} catch ( Exception e ) {
 			Ln.e( e, "Unable to retrieve all addresses" );
 			addresses = new ArrayList<Address>();
-			addresses.add( new Address( "unknown info", "unknown" ) );
 		}
 
 		return addresses;
@@ -74,7 +75,7 @@ public class WebDao {
 			parameters.add( new BasicNameValuePair( "address", address ) );
 			parameters.add( new BasicNameValuePair( "nickname", nickname ) );
 
-			HttpPost request = new HttpPost( BASE_ADDRESS_PATH );
+			HttpPost request = new HttpPost( getAddressUrl() );
 			return executeForAddress( request, parameters );
 		} catch ( Exception e ) {
 			Ln.e( e, "Unable to create an address: %s", address );
@@ -87,7 +88,7 @@ public class WebDao {
 			List<NameValuePair> parameters = new ArrayList<NameValuePair>();
 			parameters.add( new BasicNameValuePair( "nickname", nickname ) );
 
-			HttpPut request = new HttpPut( String.format( SPECIFIC_ADDRESS_PATH, id ) );
+			HttpPut request = new HttpPut( String.format( getSpecificAddressUrl(), id ) );
 			return executeForAddress( request, parameters );
 		} catch ( Exception e ) {
 			Ln.e( e, "Unable to udpate an address: %d", id );
@@ -97,7 +98,7 @@ public class WebDao {
 
 	public boolean deleteAddress( long id ) {
 		try {
-			HttpDelete request = new HttpDelete( String.format( SPECIFIC_ADDRESS_PATH, id ) );
+			HttpDelete request = new HttpDelete( String.format( getSpecificAddressUrl(), id ) );
 			HttpResponse response = httpClient.execute( request );
 			return response.getStatusLine().getStatusCode() == 200;
 		} catch ( Exception e ) {
@@ -113,5 +114,17 @@ public class WebDao {
 		String content = EntityUtils.toString( response.getEntity() );
 		
 		return gson.fromJson( content.toString(), Address.class );
+	}
+	
+	private String getBaseUrl() {
+		return urlProvider.getBaseUrl();
+	}
+	
+	private String getAddressUrl() {
+		return getBaseUrl() + BASE_ADDRESS_PATH;
+	}
+	
+	private String getSpecificAddressUrl() {
+		return getBaseUrl() + SPECIFIC_ADDRESS_PATH;
 	}
 }
