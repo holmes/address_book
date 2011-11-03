@@ -1,1 +1,21 @@
 An address book w/ the backend in Python and a supporting Android app to edit/view entries
+
+To set up the server portion:
+
+Hop into the server dir:
+$ cd address_server
+
+Load up a python shell and init the db (stores it in /tmp/address_book.db)
+>>> from address_book import init_db
+>>> init_db()
+
+and start the server
+$ python address_book.py
+
+
+To launch the app, open eclipse and import the project, or copy the binary in the root repo to your phone.
+Once you're in the app, you'll probably see nothing as the address isn't pointing anywhere useful. Hit menu and set the address via the update url button. just point it to where flask said it's server is.
+
+It's simple and straightforward. I wanted to get some mapping stuff in there, but I figured I'd just send it over as is.
+
+-Holmes
