@@ -62,6 +62,9 @@ def address(address_id):
 
 @app.route('/address', methods=['POST'])
 def new_address():
+    #query_path = "http://maps.googleapis.com/maps/api/geocode/json?address={0}&sensor=false".format(request.form['address'])
+    # find a way to hit that endpoint
+	
     query_db('insert into addresses (address, nickname, latitude, longitude) values (?, ?, 1, 1)',
                      [request.form['address'], request.form['nickname']], one=True)
     g.db.commit()
